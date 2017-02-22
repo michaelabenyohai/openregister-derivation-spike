@@ -1,0 +1,39 @@
+apply plugin: 'idea'
+apply plugin: 'java'
+apply from: 'external-dependencies.gradle'
+apply from: 'idea-config.gradle'
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.6'
+}
+
+group 'rsf-parser'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile dropwizard,jacksonCsv
+    compile(postgresClient) {
+        exclude group: 'org.slf4j'
+    }
+}
+
+jar.baseName = "rsf-parser"
+
+jar {
+    doFirst {
+        from {
+            configurations.compile.collect {
+                it.isDirectory() ? it : zipTree(it)
+            }
+        }
+        manifest {
+            attributes(
+                    "Main-Class": "uk.gov.rsf.serialization.RSFService",
+                    "Class-Path": configurations.runtime.findAll { !it.directory }.collect { it.name }.join(' ')
+            )
+        }
+    }
+}

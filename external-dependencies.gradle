@@ -1,0 +1,20 @@
+ext {
+    dropwizard_version = '1.0.2'
+    jackson_version = '2.8.3'
+
+    dropwizard = [
+            "io.dropwizard:dropwizard-core:${dropwizard_version}",
+            "io.dropwizard:dropwizard-assets:${dropwizard_version}",
+            "io.dropwizard:dropwizard-auth:${dropwizard_version}",
+            "io.dropwizard:dropwizard-client:${dropwizard_version}",
+            "io.dropwizard:dropwizard-configuration:${dropwizard_version}",
+            "io.dropwizard:dropwizard-jdbi:${dropwizard_version}",
+            "io.dropwizard:dropwizard-logging:${dropwizard_version}",
+            "io.dropwizard:dropwizard-views:${dropwizard_version}",
+            "io.dropwizard.modules:dropwizard-flyway:1.0.0-1"
+    ]
+
+    postgresClient = 'org.postgresql:postgresql:9.4.1211'
+
+    jacksonCsv = "com.fasterxml.jackson.dataformat:jackson-dataformat-csv:${jackson_version}"
+}
