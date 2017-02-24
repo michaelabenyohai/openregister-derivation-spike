@@ -2,28 +2,40 @@ package uk.gov.rsf.indexer;
 
 import uk.gov.rsf.util.Entry;
 import uk.gov.rsf.util.HashValue;
-import uk.gov.rsf.util.Register;
 
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * This is a structure that stores index data in the below table format:
+ *
+ * |    index name     | index value | start entry | end entry |   item hash  |
+ * -----------------------------------------------------------------------------
+ * | current-countries |      SU     |       1     |      2    |  sha-256:abc |
+ * |    record         |      SU     |       1     |      2    |  sha-256:abc |
+ * |    record         |      SU     |       2     |           |  sha-256:dfe |
+ * |    record         |      GB     |       3     |           |  sha-256:ghi |
+ * | current-countries |      GB     |       3     |           |  sha-256:ghi |
+ *
+ * When something enters the index, it gets a row with a start entry and a null end entry.
+ * When something leaves the index, the end entry gets populated with the entry number at which it no longer exists
+ * in the index.
+ */
 public class Index {
     private List<IndexRow> indexRows;
 
-    public Index(Register register) {
+    public Index() {
         this.indexRows = new ArrayList<>();
     }
 
-    public void start(String name, String value, int entryStart, HashValue itemHash) {
-        indexRows.add(new IndexRow(name, value, entryStart, itemHash));
+    public void startValueForIndex(String indexName, String indexValue, int entryStart, HashValue itemHash) {
+        indexRows.add(new IndexRow(indexName, indexValue, entryStart, itemHash));
     }
 
-    public void endIndex(String name, String value, HashValue itemHash, Entry entry) {
-        Optional<IndexRow> toEnd = indexRows.stream().filter(indexRow -> indexRow.getName().equals(name)
-                && indexRow.getItemHash().equals(itemHash)
-                && indexRow.getValue().equals(value)
-                && indexRow.isCurrent())
+    public void endValueForIndex(String indexName, String indexValue, HashValue itemHash, Entry entry) {
+        Optional<IndexRow> toEnd = getCurrentRowsForIndexValue(indexName, Optional.of(indexValue))
+                .filter(row -> row.getItemHash().equals(itemHash))
                 .findFirst();
 
         toEnd.get().setEndEntry(entry.getEntryNumber());
@@ -44,48 +56,56 @@ public class Index {
         return indexValueRows.map(row -> row.getItemHash()).collect(Collectors.toList());
     }
 
+    public Map<IndexRow.IndexValueEntryNumberPair, List<HashValue>> getAllItemsByIndexValueAndOriginalEntryNumber(String indexName, Optional<String> indexValue, Optional<Integer> registerVersion) {
+        List<IndexRow> allRowsForIndexValue = (registerVersion.isPresent()
+                ? getAllRowsForIndexValueAtVersion(indexName, indexValue, registerVersion.get())
+                : getAllRowsForIndexValue(indexName, indexValue))
+                .collect(Collectors.toList());
+
+        Stream<IndexValueEvent> indexValueEvents = getAllIndexValueEvents(allRowsForIndexValue, registerVersion);
+
+        return getItemsForIndexValueEntryNumberPair(indexValueEvents);
+    }
+
+    private Map<IndexRow.IndexValueEntryNumberPair, List<HashValue>> getItemsForIndexValueEntryNumberPair(Stream<IndexValueEvent> indexValueEvents) {
+        Map<IndexRow.IndexValueEntryNumberPair, List<HashValue>> itemsForEachIndexValueAtOriginalEntryNumber = new HashMap<>();
+        indexValueEvents.forEach(indexValueEvent -> {
+            List<HashValue> hashes = getCurrentItemsForIndexValue(indexValueEvent.getOriginalIndexRow().getName(), indexValueEvent.getOriginalIndexRow().getValue(), Optional.of(indexValueEvent.getOriginalIndexRow().getTransaction(indexValueEvent.isStartEvent()).getEntryNumber()));
+            itemsForEachIndexValueAtOriginalEntryNumber.put(indexValueEvent.getOriginalIndexRow().getTransaction(indexValueEvent.isStartEvent()), hashes);
+        });
+        return itemsForEachIndexValueAtOriginalEntryNumber;
+    }
+
+    private Stream<IndexValueEvent> getAllIndexValueEvents(List<IndexRow> indexValueRows, Optional<Integer> registerVersion) {
+        return Stream.concat(
+                indexValueRows.stream()
+                        .filter(r -> !registerVersion.isPresent() || r.getStartEntry() <= registerVersion.get())
+                        .map(r -> new IndexValueEvent(r, true)),
+                indexValueRows.stream()
+                        .filter(r -> !r.isCurrent() && (!registerVersion.isPresent() || r.getEndEntry() <= registerVersion.get()))
+                        .map(r -> new IndexValueEvent(r, false)));
+    }
+
     private Stream<IndexRow> getAllRowsForIndexValueAtVersion(String indexName, Optional<String> indexValue, int version) {
-        return  getRowsForIndexValue(indexName, indexValue)
+        return  getAllRowsForIndexValue(indexName, indexValue)
                 .filter(ir -> ((ir.isCurrent() && ir.getStartEntry() <= version) || (!ir.isCurrent() && ir.getStartEntry() <= version)));
     }
 
     private Stream<IndexRow> getCurrentRowsForIndexValueAtVersion(String indexName, Optional<String> indexValue, int version) {
-        return getRowsForIndexValue(indexName, indexValue)
+        return getAllRowsForIndexValue(indexName, indexValue)
                 .filter(row -> (row.isCurrent() && row.getStartEntry() <= version)
                         || (!row.isCurrent() && row.getStartEntry() <= version && row.getEndEntry() > version));
     }
 
     private Stream<IndexRow> getCurrentRowsForIndexValue(String indexName, Optional<String> indexValue) {
-        return getRowsForIndexValue(indexName, indexValue)
+        return getAllRowsForIndexValue(indexName, indexValue)
                 .filter(row -> row.isCurrent());
     }
 
-    private Stream<IndexRow> getRowsForIndexValue(String indexName, Optional<String> indexValue) {
+    private Stream<IndexRow> getAllRowsForIndexValue(String indexName, Optional<String> indexValue) {
         return indexRows.stream()
                 .filter(row -> row.getName().equals(indexName))
                 .filter(row -> !indexValue.isPresent() || row.getValue().equals(indexValue.get()));
-    }
-
-    public Map<IndexRow.IndexValueEvent, List<HashValue>> getItemsByIndexValueAndOriginalEntryNumber(String indexName, Optional<String> indexValue, Optional<Integer> registerVersion) {
-        List<IndexRow> indexValueRows = (registerVersion.isPresent()
-                ? getAllRowsForIndexValueAtVersion(indexName, indexValue, registerVersion.get())
-                : getRowsForIndexValue(indexName, indexValue))
-                .collect(Collectors.toList());
-
-        Stream<StartEndAction> startEndActions = Stream.concat(
-                indexValueRows.stream()
-                        .filter(r -> !registerVersion.isPresent() || r.getStartEntry() <= registerVersion.get())
-                        .map(r -> new StartEndAction(r, true)),
-                indexValueRows.stream()
-                        .filter(r -> !r.isCurrent() && (!registerVersion.isPresent() || r.getEndEntry() <= registerVersion.get()))
-                        .map(r -> new StartEndAction(r, false)));
-
-        Map<IndexRow.IndexValueEvent, List<HashValue>> bla = new HashMap<>();
-        startEndActions.forEach(startEndAction -> {
-                List<HashValue> hashes = getCurrentItemsForIndexValue(startEndAction.getOriginalIndexRow().getName(), startEndAction.getOriginalIndexRow().getValue(), Optional.of(startEndAction.getOriginalIndexRow().getTransaction(startEndAction.isStart()).getOriginalEntryNumber()));
-                bla.put(startEndAction.getOriginalIndexRow().getTransaction(startEndAction.isStart()), hashes);
-        });
-        return bla;
     }
 
     @Override
@@ -93,11 +113,11 @@ public class Index {
         return String.join("\n", indexRows.stream().map(IndexRow::toString).collect(Collectors.toList()));
     }
 
-    private class StartEndAction {
+    private class IndexValueEvent {
         public IndexRow originalIndexRow;
         public boolean start;
 
-        public StartEndAction(IndexRow indexRow, boolean start) {
+        public IndexValueEvent(IndexRow indexRow, boolean start) {
             this.originalIndexRow = indexRow;
             this.start = start;
         }
@@ -106,7 +126,7 @@ public class Index {
             return originalIndexRow;
         }
 
-        public boolean isStart() {
+        public boolean isStartEvent() {
             return  start;
         }
     }

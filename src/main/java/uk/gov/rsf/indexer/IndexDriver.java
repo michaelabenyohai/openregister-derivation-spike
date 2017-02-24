@@ -16,7 +16,7 @@ public class IndexDriver {
     private final Register register;
 
     public IndexDriver(Register register) {
-        this.index = new Index(register);
+        this.index = new Index();
         this.register = register;
     }
 
@@ -35,12 +35,12 @@ public class IndexDriver {
 
     private void endIndices(Set<IndexValueItemPair> start, Set<IndexValueItemPair> end, String indexName, Entry entry) {
         List<IndexValueItemPair> toEnd = start.stream().filter(i -> !end.contains(i)).collect(Collectors.toList());
-        toEnd.forEach(i -> index.endIndex(indexName, i.getValue(), i.getItemHash(), entry));
+        toEnd.forEach(i -> index.endValueForIndex(indexName, i.getValue(), i.getItemHash(), entry));
     }
 
     private void startIndices(Set<IndexValueItemPair> start, Set<IndexValueItemPair> end, String indexName, Entry entry) {
         List<IndexValueItemPair> toStart = end.stream().filter(i -> !start.contains(i)).collect(Collectors.toList());
-        toStart.forEach(i -> index.start(indexName, i.getValue(), entry.getEntryNumber(), i.getItemHash()));
+        toStart.forEach(i -> index.startValueForIndex(indexName, i.getValue(), entry.getEntryNumber(), i.getItemHash()));
     }
 
     public Index getIndex() {

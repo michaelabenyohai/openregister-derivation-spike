@@ -56,11 +56,11 @@ public class Register {
     public List<Entry> getRsfEntries(String indexName, Optional<String> indexValue, Optional<Integer> registerVersion) {
         AtomicInteger entryNumber = new AtomicInteger();
 
-        Map<IndexRow.IndexValueEvent, List<HashValue>> result = indexDriver.getIndex().getItemsByIndexValueAndOriginalEntryNumber(indexName, indexValue, registerVersion);
+        Map<IndexRow.IndexValueEntryNumberPair, List<HashValue>> result = indexDriver.getIndex().getAllItemsByIndexValueAndOriginalEntryNumber(indexName, indexValue, registerVersion);
         return result.entrySet().stream()
-                .sorted((e1, e2) -> Integer.compare(e1.getKey().getOriginalEntryNumber(), e2.getKey().getOriginalEntryNumber()))
+                .sorted((e1, e2) -> Integer.compare(e1.getKey().getEntryNumber(), e2.getKey().getEntryNumber()))
                 .map(e -> {
-                    Entry originalEntry = entries.get(e.getKey().getOriginalEntryNumber());
+                    Entry originalEntry = entries.get(e.getKey().getEntryNumber());
                     return new Entry(entryNumber.incrementAndGet(), e.getValue(), originalEntry.getTimestamp(), e.getKey().getIndexValue());
                 }).collect(Collectors.toList());
     }

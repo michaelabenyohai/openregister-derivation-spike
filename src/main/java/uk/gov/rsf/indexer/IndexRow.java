@@ -47,8 +47,8 @@ public class IndexRow {
         return itemHash;
     }
 
-    public IndexValueEvent getTransaction(boolean start) {
-        return new IndexValueEvent(start ? startEntry : endEntry.get(), value);
+    public IndexValueEntryNumberPair getTransaction(boolean start) {
+        return new IndexValueEntryNumberPair(start ? startEntry : endEntry.get(), value);
     }
 
     @Override
@@ -56,17 +56,17 @@ public class IndexRow {
         return String.join("\t", name, value, Integer.toString(startEntry), endEntry.isPresent() ? endEntry.get().toString() : "null", itemHash.toString());
     }
 
-    public class IndexValueEvent {
-        private final int originalEntryNumber;
+    public class IndexValueEntryNumberPair {
+        private final int entryNumber;
         private final String indexValue;
 
-        public IndexValueEvent(int originalEntryNumber, String indexValue) {
-            this.originalEntryNumber = originalEntryNumber;
+        public IndexValueEntryNumberPair(int entryNumber, String indexValue) {
+            this.entryNumber = entryNumber;
             this.indexValue = indexValue;
         }
 
-        public int getOriginalEntryNumber() {
-            return originalEntryNumber;
+        public int getEntryNumber() {
+            return entryNumber;
         }
 
         public String getIndexValue() {
@@ -78,16 +78,16 @@ public class IndexRow {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
 
-            IndexValueEvent obj = (IndexValueEvent) o;
+            IndexValueEntryNumberPair obj = (IndexValueEntryNumberPair) o;
 
-            if (originalEntryNumber != obj.originalEntryNumber) return false;
+            if (entryNumber != obj.entryNumber) return false;
             return indexValue == null ? obj.indexValue == null : indexValue.equals(obj.indexValue);
         }
 
         @Override
         public int hashCode() {
             int result = indexValue != null ? indexValue.hashCode() : 0;
-            result = 31 * originalEntryNumber + result;
+            result = 31 * entryNumber + result;
             return result;
         }
     }
