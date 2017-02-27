@@ -1,20 +1,17 @@
 package uk.gov.rsf.indexer.function;
 
 import uk.gov.rsf.indexer.IndexValueItemPair;
-import uk.gov.rsf.util.Entry;
+import uk.gov.rsf.util.HashValue;
 
 import java.util.Set;
-import java.util.stream.Collectors;
 
-public class RecordIndexFunction implements IndexFunction {
+public class RecordIndexFunction extends BaseIndexFunction {
 
     public RecordIndexFunction() {}
 
     @Override
-    public Set<IndexValueItemPair> execute(Entry entry) {
-        return entry.getSha256hex().stream()
-                .map(hashValue -> new IndexValueItemPair(entry.getKey(), hashValue))
-                .collect(Collectors.toSet());
+    protected void execute(String key, HashValue itemHash, Set<IndexValueItemPair> result) {
+        result.add(new IndexValueItemPair(key, itemHash));
     }
 
     @Override

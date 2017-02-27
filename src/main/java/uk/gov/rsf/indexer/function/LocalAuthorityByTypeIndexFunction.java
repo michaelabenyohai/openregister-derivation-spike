@@ -1,14 +1,13 @@
 package uk.gov.rsf.indexer.function;
 
 import uk.gov.rsf.indexer.IndexValueItemPair;
-import uk.gov.rsf.util.Entry;
+import uk.gov.rsf.util.HashValue;
 import uk.gov.rsf.util.Item;
 import uk.gov.rsf.util.Register;
 
-import java.util.HashSet;
 import java.util.Set;
 
-public class LocalAuthorityByTypeIndexFunction implements IndexFunction {
+public class LocalAuthorityByTypeIndexFunction extends BaseIndexFunction {
     private final Register register;
 
     public LocalAuthorityByTypeIndexFunction(Register register) {
@@ -16,12 +15,9 @@ public class LocalAuthorityByTypeIndexFunction implements IndexFunction {
     }
 
     @Override
-    public Set<IndexValueItemPair> execute(Entry entry) {
-        Set<IndexValueItemPair> result = new HashSet<>();
-        Item item = register.getItem(entry.getSha256hex().get(0));
-
+    protected void execute(String key, HashValue itemHash, Set<IndexValueItemPair> result) {
+        Item item = register.getItem(itemHash);
         result.add(new IndexValueItemPair(item.getValue("local-authority-type"), item.getSha256hex()));
-        return result;
     }
 
     @Override
