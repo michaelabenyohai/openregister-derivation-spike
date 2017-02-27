@@ -9,7 +9,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class LocalAuthorityByTypeIndexFunction implements IndexFunction {
-    private Register register;
+    private final Register register;
 
     public LocalAuthorityByTypeIndexFunction(Register register) {
         this.register = register;

@@ -1,9 +1,6 @@
 package uk.gov.rsf.serialization;
 
-import uk.gov.rsf.indexer.function.CurrentCountriesIndexFunction;
-import uk.gov.rsf.indexer.function.IndexFunction;
-import uk.gov.rsf.indexer.function.LocalAuthorityByTypeIndexFunction;
-import uk.gov.rsf.indexer.function.RecordIndexFunction;
+import uk.gov.rsf.indexer.function.*;
 import uk.gov.rsf.serialization.handlers.AddItemCommandHandler;
 import uk.gov.rsf.serialization.handlers.AppendEntryCommandHandler;
 import uk.gov.rsf.util.Entry;
@@ -22,7 +19,8 @@ public class RSFService {
 
     private static final List<Function<Register, IndexFunction>> availableIndexFunctions = Arrays.asList(
             r -> new CurrentCountriesIndexFunction(r),
-            r -> new LocalAuthorityByTypeIndexFunction(r));
+            r -> new LocalAuthorityByTypeIndexFunction(r),
+            r -> new SchoolByAgeIndexFunction(r));
 
     private static final List<IndexFunction> defaultIndexFunctions = Arrays.asList(
             new RecordIndexFunction());
