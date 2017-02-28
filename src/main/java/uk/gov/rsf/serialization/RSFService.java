@@ -38,7 +38,7 @@ public class RSFService {
             System.out.println(register.getIndex().toString());
         } else {
             if (indexRender.equals("current")) {
-                printRecords(register.getCurrentIndex(indexName, indexValue, registerVersion), register);
+                printRecords(register.getRecordsForIndex(indexName, indexValue, registerVersion), register);
             } else if (indexRender.equals("entries")) {
                 printEntries(register.getRsfEntries(indexName, indexValue, registerVersion), register);
             }
