@@ -39,7 +39,7 @@ public class RSFService {
         } else {
             if (indexRender.equals("current")) {
                 printRecords(register.getRecordsForIndex(indexName, indexValue, registerVersion), register);
-            } else if (indexRender.equals("entries")) {
+            } else if (indexRender.equals("rsf")) {
                 printEntries(register.getRsfEntries(indexName, indexValue, registerVersion), register);
             }
         }
