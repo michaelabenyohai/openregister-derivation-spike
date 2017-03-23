@@ -142,9 +142,11 @@ public class Index {
         return Stream.concat(
                 indexValueRows.stream()
                         .filter(r -> !registerVersion.isPresent() || r.getStartEntry() <= registerVersion.get())
+                        .filter(r -> r.getStartIndexEntry().isPresent())
                         .map(r -> new IndexValueEvent(r, true)),
                 indexValueRows.stream()
                         .filter(r -> !r.isCurrent() && (!registerVersion.isPresent() || r.getEndEntry() <= registerVersion.get()))
+                        .filter(r -> r.getEndIndexEntry().isPresent())
                         .map(r -> new IndexValueEvent(r, false)));
     }
 
