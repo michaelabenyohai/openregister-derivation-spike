@@ -6,4 +6,4 @@ In each of the directories there are three files.
 
 To load index-table.tsv into an index table use the following command:
 
-cat index-table.tsv | psql -c "COPY index FROM STDIN NULL 'null'" {database-name}
+`cat index-table.tsv | psql -c "COPY index FROM STDIN NULL 'null'" {database-name}`
