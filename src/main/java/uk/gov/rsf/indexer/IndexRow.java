@@ -72,7 +72,7 @@ public class IndexRow {
     }
 
     public IndexValueEntryNumberPair getTransaction(boolean start) {
-        return new IndexValueEntryNumberPair(start ? startEntry : endEntry.get(), value);
+        return new IndexValueEntryNumberPair(start ? startEntry : endEntry.get(), value, start ? startIndexEntry.get() : endIndexEntry.get());
     }
 
     @Override
@@ -86,14 +86,20 @@ public class IndexRow {
     public class IndexValueEntryNumberPair {
         private final int entryNumber;
         private final String indexValue;
+        private final int indexEntryNumber;
 
-        public IndexValueEntryNumberPair(int entryNumber, String indexValue) {
+        public IndexValueEntryNumberPair(int entryNumber, String indexValue, int indexEntryNumber) {
             this.entryNumber = entryNumber;
             this.indexValue = indexValue;
+            this.indexEntryNumber = indexEntryNumber;
         }
 
         public int getEntryNumber() {
             return entryNumber;
+        }
+
+        public int getIndexEntryNumber() {
+            return indexEntryNumber;
         }
 
         public String getIndexValue() {

@@ -62,7 +62,7 @@ public class Register {
 
         Map<IndexRow.IndexValueEntryNumberPair, List<HashValue>> result = indexDriver.getIndex().getAllItemsByIndexValueAndOriginalEntryNumber(indexName, indexValue, registerVersion);
         return result.entrySet().stream()
-                .sorted((e1, e2) -> Integer.compare(e1.getKey().getEntryNumber(), e2.getKey().getEntryNumber()))
+                .sorted((e1, e2) -> Integer.compare(e1.getKey().getIndexEntryNumber(), e2.getKey().getIndexEntryNumber()))
                 .map(e -> {
                     Entry originalEntry = entries.get(e.getKey().getEntryNumber());
                     return new Entry(entryNumber.incrementAndGet(), e.getValue(), originalEntry.getTimestamp(), e.getKey().getIndexValue());
