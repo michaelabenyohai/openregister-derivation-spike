@@ -40,6 +40,10 @@ public class Register {
         return items.get(hashValue);
     }
 
+    public Entry getEntry(int entryNumber) {
+        return entries.get(entryNumber);
+    }
+
     public int getLatestEntryNumber() {
         return entries.keySet().stream().max((i,j) -> Integer.compare(i,j)).orElse(0);
     }

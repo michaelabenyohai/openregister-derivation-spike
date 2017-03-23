@@ -7,16 +7,28 @@ import java.util.Optional;
 public class IndexRow {
     private final String name;
     private final String value;
+    private final HashValue itemHash;
     private final int startEntry;
     private Optional<Integer> endEntry;
-    private final HashValue itemHash;
+    private final Optional<Integer> startIndexEntry;
+    private Optional<Integer> endIndexEntry;
 
-    public IndexRow(String name, String value, int startEntry, HashValue itemHash) {
+    public IndexRow(String name, String value, HashValue itemHash, int startEntry) {
+        this(name, value, itemHash, startEntry, Optional.empty());
+    }
+
+    public IndexRow(String name, String value, HashValue itemHash, int startEntry, int startIndexEntry) {
+        this(name, value, itemHash, startEntry, Optional.of(startIndexEntry));
+    }
+
+    private IndexRow(String name, String value, HashValue itemHash, int startEntry, Optional<Integer> startIndexEntry) {
         this.name = name;
         this.value = value;
+        this.itemHash = itemHash;
         this.startEntry = startEntry;
         this.endEntry = Optional.empty();
-        this.itemHash = itemHash;
+        this.startIndexEntry = startIndexEntry;
+        this.endIndexEntry = Optional.empty();
     }
 
     public String getName() {
@@ -25,6 +37,10 @@ public class IndexRow {
 
     public String getValue() {
         return value;
+    }
+
+    public HashValue getItemHash() {
+        return itemHash;
     }
 
     public int getStartEntry() {
@@ -43,8 +59,16 @@ public class IndexRow {
         return endEntry.orElseGet(null);
     }
 
-    public HashValue getItemHash() {
-        return itemHash;
+    public Optional<Integer> getStartIndexEntry() {
+        return startIndexEntry;
+    }
+
+    public void setEndIndexEntry(int value) {
+        endIndexEntry = Optional.of(value);
+    }
+
+    public Optional<Integer> getEndIndexEntry() {
+        return endIndexEntry;
     }
 
     public IndexValueEntryNumberPair getTransaction(boolean start) {
@@ -53,7 +77,10 @@ public class IndexRow {
 
     @Override
     public String toString() {
-        return String.join("\t", name, value, Integer.toString(startEntry), endEntry.isPresent() ? endEntry.get().toString() : "null", itemHash.toString());
+        return String.join("\t", name, value, itemHash.toString(), Integer.toString(startEntry),
+                endEntry.isPresent() ? endEntry.get().toString() : "null",
+                startIndexEntry.isPresent() ? startIndexEntry.get().toString() : "null",
+                endIndexEntry.isPresent() ? endIndexEntry.get().toString() : "null");
     }
 
     public class IndexValueEntryNumberPair {

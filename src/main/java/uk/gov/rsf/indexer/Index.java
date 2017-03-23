@@ -1,7 +1,7 @@
 package uk.gov.rsf.indexer;
 
-import uk.gov.rsf.util.Entry;
 import uk.gov.rsf.util.HashValue;
+import uk.gov.rsf.util.Register;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -24,21 +24,83 @@ import java.util.stream.Stream;
  */
 public class Index {
     private List<IndexRow> indexRows;
+    private Register register;
+    private final Map<String, Integer> currentEntryNumbers = new HashMap<>();
 
-    public Index() {
+    public Index(Register register) {
+        this.register = register;
         this.indexRows = new ArrayList<>();
     }
 
-    public void startValueForIndex(String indexName, String indexValue, int entryStart, HashValue itemHash) {
-        indexRows.add(new IndexRow(indexName, indexValue, entryStart, itemHash));
+    private class IndexValueItemPairEvent {
+        private final IndexValueItemPair pair;
+        private final boolean isStart;
+
+        public IndexValueItemPairEvent(IndexValueItemPair pair, boolean isStart) {
+            this.pair = pair;
+            this.isStart = isStart;
+        }
+
+        public HashValue getItemHash() {
+            return pair.getItemHash();
+        }
+
+        public String getIndexValue() {
+            return pair.getValue();
+        }
+
+        public boolean isStart() {
+            return isStart;
+        }
     }
 
-    public void endValueForIndex(String indexName, String indexValue, HashValue itemHash, Entry entry) {
-        Optional<IndexRow> toEnd = getCurrentRowsForIndexValue(indexName, Optional.of(indexValue))
-                .filter(row -> row.getItemHash().equals(itemHash))
-                .findFirst();
+    public void startValuesForIndex(List<IndexValueItemPair> toStart, List<IndexValueItemPair> toEnd, String indexName, String key, int entryNumber) {
+        Map<String, List<IndexValueItemPairEvent>> valueChanges = Stream.concat(
+                toStart.stream().map(p -> new IndexValueItemPairEvent(p, true)),
+                toEnd.stream().map(p -> new IndexValueItemPairEvent(p, false)))
+                .collect(Collectors.groupingBy(IndexValueItemPairEvent::getIndexValue));
 
-        toEnd.get().setEndEntry(entry.getEntryNumber());
+        if (!currentEntryNumbers.containsKey(indexName)) {
+            currentEntryNumbers.put(indexName, 0);
+        }
+
+        int currentMaxIndexEntry = currentEntryNumbers.get(indexName);
+        for (Map.Entry<String, List<IndexValueItemPairEvent>> v : valueChanges.entrySet().stream().sorted(Comparator.comparing(Map.Entry::getKey)).collect(Collectors.toList())) {
+            int thisIndexEntryNumber = currentMaxIndexEntry + 1;
+            for (IndexValueItemPairEvent h : v.getValue()) {
+                Stream<IndexRow> rows = getCurrentRowsForIndexValue(indexName, Optional.of(h.getIndexValue()));
+                if (h.isStart()) {
+                    if (rows.noneMatch(row -> row.getItemHash().equals(h.getItemHash()))) {
+                        indexRows.add(new IndexRow(indexName, h.getIndexValue(), h.getItemHash(), entryNumber, thisIndexEntryNumber));
+                        currentMaxIndexEntry = thisIndexEntryNumber;
+                    } else {
+                        indexRows.add(new IndexRow(indexName, h.getIndexValue(), h.getItemHash(), entryNumber));
+                    }
+                } else {
+                    if (rows.filter(row -> row.getItemHash().equals(h.getItemHash())).count() == 1) {
+                        setEndIndexEntryForIndex(indexName, h.getIndexValue(), h.getItemHash(), key, thisIndexEntryNumber);
+                        currentMaxIndexEntry = thisIndexEntryNumber;
+                    }
+                    setEndEntryForIndex(indexName, h.getIndexValue(), h.getItemHash(), key, entryNumber);
+                }
+            }
+        }
+
+        currentEntryNumbers.put(indexName, currentMaxIndexEntry);
+    }
+
+    public void setEndEntryForIndex(String indexName, String indexValue, HashValue itemHash, String key, int endEntryNumber) {
+        getCurrentRowsForIndexValue(indexName, Optional.of(indexValue))
+                .filter(row -> row.getItemHash().equals(itemHash))
+                .filter(row -> register.getEntry(row.getStartEntry()).getKey().equals(key))
+                .forEach(toEnd -> toEnd.setEndEntry(endEntryNumber));
+    }
+
+    public void setEndIndexEntryForIndex(String indexName, String indexValue, HashValue itemHash, String key, int endIndexEntryNumber) {
+        getCurrentRowsForIndexValue(indexName, Optional.of(indexValue))
+                .filter(row -> row.getItemHash().equals(itemHash))
+                .filter(row -> register.getEntry(row.getStartEntry()).getKey().equals(key))
+                .forEach(toEnd -> toEnd.setEndIndexEntry(endIndexEntryNumber));
     }
 
     public Map<String, List<HashValue>> getCurrentItemsForIndex(String indexName, Optional<String> indexValue, Optional<Integer> registerVersion) {

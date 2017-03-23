@@ -20,7 +20,8 @@ public class RSFService {
     private static final List<Function<Register, IndexFunction>> availableIndexFunctions = Arrays.asList(
             r -> new CurrentCountriesIndexFunction(r),
             r -> new LocalAuthorityByTypeIndexFunction(r),
-            r -> new SchoolByAgeIndexFunction(r));
+            r -> new SchoolByAgeIndexFunction(r),
+            r -> new ByXFunction(r));
 
     private static final List<IndexFunction> defaultIndexFunctions = Arrays.asList(
             new RecordIndexFunction());

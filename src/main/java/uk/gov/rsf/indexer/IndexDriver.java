@@ -16,7 +16,7 @@ public class IndexDriver {
     private final Register register;
 
     public IndexDriver(Register register) {
-        this.index = new Index();
+        this.index = new Index(register);
         this.register = register;
     }
 
@@ -29,18 +29,18 @@ public class IndexDriver {
 
         Set<IndexValueItemPair> newIndexValueItemPairs = indexFunction.execute(entry);
 
-        endIndices(currentIndexValueItemPairs, newIndexValueItemPairs, indexFunction.getName(), entry);
-        startIndices(currentIndexValueItemPairs, newIndexValueItemPairs, indexFunction.getName(), entry);
+        List<IndexValueItemPair> toEnd = getEndIndices(currentIndexValueItemPairs, newIndexValueItemPairs);
+        List<IndexValueItemPair> toStart = getStartIndices(currentIndexValueItemPairs, newIndexValueItemPairs);
+
+        index.startValuesForIndex(toStart, toEnd, indexFunction.getName(), entry.getKey(), entry.getEntryNumber());
     }
 
-    private void endIndices(Set<IndexValueItemPair> start, Set<IndexValueItemPair> end, String indexName, Entry entry) {
-        List<IndexValueItemPair> toEnd = start.stream().filter(i -> !end.contains(i)).collect(Collectors.toList());
-        toEnd.forEach(i -> index.endValueForIndex(indexName, i.getValue(), i.getItemHash(), entry));
+    private List<IndexValueItemPair> getEndIndices(Set<IndexValueItemPair> start, Set<IndexValueItemPair> end) {
+        return start.stream().filter(i -> !end.contains(i)).collect(Collectors.toList());
     }
 
-    private void startIndices(Set<IndexValueItemPair> start, Set<IndexValueItemPair> end, String indexName, Entry entry) {
-        List<IndexValueItemPair> toStart = end.stream().filter(i -> !start.contains(i)).collect(Collectors.toList());
-        toStart.forEach(i -> index.startValueForIndex(indexName, i.getValue(), entry.getEntryNumber(), i.getItemHash()));
+    private List<IndexValueItemPair> getStartIndices(Set<IndexValueItemPair> start, Set<IndexValueItemPair> end) {
+        return end.stream().filter(i -> !start.contains(i)).collect(Collectors.toList());
     }
 
     public Index getIndex() {
