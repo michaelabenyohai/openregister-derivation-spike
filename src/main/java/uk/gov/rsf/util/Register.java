@@ -60,7 +60,7 @@ public class Register {
     public List<Entry> getRsfEntries(String indexName, Optional<String> indexValue, Optional<Integer> registerVersion) {
         AtomicInteger entryNumber = new AtomicInteger();
 
-        Map<IndexRow.IndexValueEntryNumberPair, List<HashValue>> result = indexDriver.getIndex().getAllItemsByIndexValueAndOriginalEntryNumber(indexName, indexValue, registerVersion);
+        Map<IndexRow.IndexValueEntryNumberPair, Set<HashValue>> result = indexDriver.getIndex().getAllItemsByIndexValueAndOriginalEntryNumber(indexName, indexValue, registerVersion);
         return result.entrySet().stream()
                 .sorted((e1, e2) -> Integer.compare(e1.getKey().getIndexEntryNumber(), e2.getKey().getIndexEntryNumber()))
                 .map(e -> {

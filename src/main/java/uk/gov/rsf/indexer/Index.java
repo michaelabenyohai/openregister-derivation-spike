@@ -111,14 +111,14 @@ public class Index {
         return indexValueRows.collect(Collectors.groupingBy(row -> row.getValue(), Collectors.mapping(row -> row.getItemHash(), Collectors.toList())));
     }
 
-    public List<HashValue> getCurrentItemsForIndexValue(String indexName, String indexValue, Optional<Integer> registerVersion) {
+    public Set<HashValue> getCurrentItemsForIndexValue(String indexName, String indexValue, Optional<Integer> registerVersion) {
         Stream<IndexRow> indexValueRows = registerVersion.isPresent()
                 ? getCurrentRowsForIndexValueAtVersion(indexName, Optional.of(indexValue), registerVersion.get())
                 : getCurrentRowsForIndexValue(indexName, Optional.of(indexValue));
-        return indexValueRows.map(row -> row.getItemHash()).collect(Collectors.toList());
+        return indexValueRows.map(row -> row.getItemHash()).collect(Collectors.toSet());
     }
 
-    public Map<IndexRow.IndexValueEntryNumberPair, List<HashValue>> getAllItemsByIndexValueAndOriginalEntryNumber(String indexName, Optional<String> indexValue, Optional<Integer> registerVersion) {
+    public Map<IndexRow.IndexValueEntryNumberPair, Set<HashValue>> getAllItemsByIndexValueAndOriginalEntryNumber(String indexName, Optional<String> indexValue, Optional<Integer> registerVersion) {
         List<IndexRow> allRowsForIndexValue = (registerVersion.isPresent()
                 ? getAllRowsForIndexValueAtVersion(indexName, indexValue, registerVersion.get())
                 : getAllRowsForIndexValue(indexName, indexValue))
@@ -129,10 +129,10 @@ public class Index {
         return getItemsForIndexValueEntryNumberPair(indexValueEvents);
     }
 
-    private Map<IndexRow.IndexValueEntryNumberPair, List<HashValue>> getItemsForIndexValueEntryNumberPair(Stream<IndexValueEvent> indexValueEvents) {
-        Map<IndexRow.IndexValueEntryNumberPair, List<HashValue>> itemsForEachIndexValueAtOriginalEntryNumber = new HashMap<>();
+    private Map<IndexRow.IndexValueEntryNumberPair, Set<HashValue>> getItemsForIndexValueEntryNumberPair(Stream<IndexValueEvent> indexValueEvents) {
+        Map<IndexRow.IndexValueEntryNumberPair, Set<HashValue>> itemsForEachIndexValueAtOriginalEntryNumber = new HashMap<>();
         indexValueEvents.forEach(indexValueEvent -> {
-            List<HashValue> hashes = getCurrentItemsForIndexValue(indexValueEvent.getOriginalIndexRow().getName(), indexValueEvent.getOriginalIndexRow().getValue(), Optional.of(indexValueEvent.getOriginalIndexRow().getTransaction(indexValueEvent.isStartEvent()).getEntryNumber()));
+            Set<HashValue> hashes = getCurrentItemsForIndexValue(indexValueEvent.getOriginalIndexRow().getName(), indexValueEvent.getOriginalIndexRow().getValue(), Optional.of(indexValueEvent.getOriginalIndexRow().getTransaction(indexValueEvent.isStartEvent()).getEntryNumber()));
             itemsForEachIndexValueAtOriginalEntryNumber.put(indexValueEvent.getOriginalIndexRow().getTransaction(indexValueEvent.isStartEvent()), hashes);
         });
         return itemsForEachIndexValueAtOriginalEntryNumber;
@@ -157,13 +157,13 @@ public class Index {
 
     private Stream<IndexRow> getCurrentRowsForIndexValueAtVersion(String indexName, Optional<String> indexValue, int version) {
         return getAllRowsForIndexValue(indexName, indexValue)
-                .filter(row -> (row.isCurrent() && row.getStartEntry() <= version)
-                        || (!row.isCurrent() && row.getStartEntry() <= version && row.getEndEntry() > version));
+                .filter(row -> (row.isCurrent() && row.getStartEntry() <= version && row.getStartIndexEntry().isPresent())
+                        || (!row.isCurrent() && row.getStartEntry() <= version && row.getEndEntry() > version) && row.getStartIndexEntry().isPresent());
     }
 
     private Stream<IndexRow> getCurrentRowsForIndexValue(String indexName, Optional<String> indexValue) {
         return getAllRowsForIndexValue(indexName, indexValue)
-                .filter(row -> row.isCurrent());
+                .filter(row -> row.isCurrent() && row.getStartIndexEntry().isPresent());
     }
 
     private Stream<IndexRow> getAllRowsForIndexValue(String indexName, Optional<String> indexValue) {

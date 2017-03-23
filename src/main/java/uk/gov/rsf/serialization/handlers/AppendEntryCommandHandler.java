@@ -11,6 +11,7 @@ import uk.gov.rsf.util.HashValue;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class AppendEntryCommandHandler extends RegisterCommandHandler {
@@ -20,7 +21,7 @@ public class AppendEntryCommandHandler extends RegisterCommandHandler {
             List<String> parts = command.getCommandArguments();
             int newEntryNo = register.getLatestEntryNumber() + 1;
             String hashes = parts.get(1).replace("[", "").replace("]", "");
-            List<HashValue> hashList = Arrays.asList(hashes.split(",")).stream().map(h -> HashValue.decode(HashingAlgorithm.SHA256, h)).collect(Collectors.toList());
+            Set<HashValue> hashList = Arrays.asList(hashes.split(";")).stream().map(h -> HashValue.decode(HashingAlgorithm.SHA256, h)).collect(Collectors.toSet());
             Entry entry = new Entry(newEntryNo, hashList, Instant.parse(parts.get(0)), parts.get(2));
             register.appendEntry(entry);
             return RegisterResult.createSuccessResult();

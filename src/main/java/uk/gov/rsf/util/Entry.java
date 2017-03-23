@@ -12,21 +12,18 @@ import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import com.google.common.collect.Lists;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @JsonIgnoreProperties(ignoreUnknown=true)
 @JsonPropertyOrder({"entry-number", "entry-timestamp", "item-hash", "key"})
 public class Entry {
     private final int entryNumber;
-    private final List<HashValue> hashValue;
+    private final Set<HashValue> hashValue;
     private final Instant timestamp;
     private String key;
 
-    public Entry(int entryNumber, List<HashValue> hashValues, Instant timestamp, String key) {
+    public Entry(int entryNumber, Set<HashValue> hashValues, Instant timestamp, String key) {
         this.entryNumber = entryNumber;
         this.hashValue = hashValues;
         this.timestamp = timestamp;
@@ -35,7 +32,7 @@ public class Entry {
 
     public Entry(int entryNumber, Instant timestamp, String key) {
         this.entryNumber = entryNumber;
-        this.hashValue = new ArrayList<>();
+        this.hashValue = new HashSet<>();
         this.timestamp = timestamp;
         this.key = key;
     }
@@ -47,7 +44,7 @@ public class Entry {
 
     @SuppressWarnings("unused, used from DAO")
     @JsonProperty("item-hash")
-    public List<HashValue> getSha256hex() {
+    public Set<HashValue> getSha256hex() {
         return hashValue;
     }
 
