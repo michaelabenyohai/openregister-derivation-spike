@@ -108,6 +108,6 @@ public class Entry {
 
     @Override
     public String toString() {
-        return "append-entry\t" + getTimestampAsISOFormat() + "\t[" + String.join(",", hashValue.stream().map(h -> h.toString()).collect(Collectors.toList())) + "]\t" + key;
+        return "append-entry\t" + getTimestampAsISOFormat() + "\t" + String.join(";", hashValue.stream().map(h -> h.toString()).collect(Collectors.toList())) + "\t" + key;
     }
 }
