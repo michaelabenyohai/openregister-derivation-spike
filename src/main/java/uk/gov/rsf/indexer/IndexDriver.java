@@ -32,7 +32,7 @@ public class IndexDriver {
         List<IndexValueItemPair> toEnd = getEndIndices(currentIndexValueItemPairs, newIndexValueItemPairs);
         List<IndexValueItemPair> toStart = getStartIndices(currentIndexValueItemPairs, newIndexValueItemPairs);
 
-        index.startValuesForIndex(toStart, toEnd, indexFunction.getName(), entry.getKey(), entry.getEntryNumber());
+        index.updateValuesForIndex(toStart, toEnd, indexFunction.getName(), entry.getKey(), entry.getEntryNumber());
     }
 
     private List<IndexValueItemPair> getEndIndices(Set<IndexValueItemPair> start, Set<IndexValueItemPair> end) {

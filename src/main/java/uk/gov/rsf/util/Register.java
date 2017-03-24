@@ -53,7 +53,7 @@ public class Register {
         return records.isEmpty() ? Optional.empty() : Optional.of(records.get(records.size() - 1));
     }
 
-    public Map<String, List<HashValue>> getRecordsForIndex(String indexName, Optional<String> indexValue, Optional<Integer> registerVersion) {
+    public List<Entry> getRecordsForIndex(String indexName, Optional<String> indexValue, Optional<Integer> registerVersion) {
         return indexDriver.getIndex().getCurrentItemsForIndex(indexName, indexValue, registerVersion);
     }
 

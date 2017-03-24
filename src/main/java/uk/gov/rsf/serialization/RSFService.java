@@ -56,10 +56,12 @@ public class RSFService {
         rsfService.process(rsf);
     }
 
-    private static void printRecords(Map<String, List<HashValue>> records, Register register) {
-        records.entrySet().stream().sorted((es1, es2) -> es1.getKey().compareTo(es2.getKey())).forEach(f -> {
+    private static void printRecords(List<Entry> records, Register register) {
+        records.forEach(f -> {
             System.out.println(f.getKey() + ":");
-            f.getValue().forEach(itemHash -> System.out.println("\t" + register.getItem(itemHash).getContent()));
+            System.out.println("\tindex-entry-number: " + f.getIndexEntryNumber());
+            System.out.println("\tentry-number: " + f.getEntryNumber());
+            f.getSha256hex().forEach(itemHash -> System.out.println("\t\t" + register.getItem(itemHash).getContent()));
         });
     }
 

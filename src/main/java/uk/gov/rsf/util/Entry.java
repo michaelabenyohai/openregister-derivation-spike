@@ -18,12 +18,22 @@ import java.util.stream.Collectors;
 @JsonIgnoreProperties(ignoreUnknown=true)
 @JsonPropertyOrder({"entry-number", "entry-timestamp", "item-hash", "key"})
 public class Entry {
+    private final int indexEntryNumber;
     private final int entryNumber;
     private final Set<HashValue> hashValue;
     private final Instant timestamp;
     private String key;
 
+    public Entry(int indexEntryNumber, int entryNumber, Set<HashValue> hashValues, Instant timestamp, String key) {
+        this.indexEntryNumber = indexEntryNumber;
+        this.entryNumber = entryNumber;
+        this.hashValue = hashValues;
+        this.timestamp = timestamp;
+        this.key = key;
+    }
+
     public Entry(int entryNumber, Set<HashValue> hashValues, Instant timestamp, String key) {
+        this.indexEntryNumber = entryNumber;
         this.entryNumber = entryNumber;
         this.hashValue = hashValues;
         this.timestamp = timestamp;
@@ -31,6 +41,7 @@ public class Entry {
     }
 
     public Entry(int entryNumber, Instant timestamp, String key) {
+        this.indexEntryNumber = entryNumber;
         this.entryNumber = entryNumber;
         this.hashValue = new HashSet<>();
         this.timestamp = timestamp;
@@ -57,6 +68,10 @@ public class Entry {
     @JsonSerialize(using = ToStringSerializer.class)
     public Integer getEntryNumber() {
         return entryNumber;
+    }
+
+    public Integer getIndexEntryNumber() {
+        return indexEntryNumber;
     }
 
     @JsonProperty("entry-timestamp")
