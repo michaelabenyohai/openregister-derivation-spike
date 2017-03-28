@@ -1,0 +1,7 @@
+add-item	{"X":"P"}
+add-item	{"X":"Q"}
+add-item	{"X":"R"}
+add-item	{"X":"P","Y":"M"}
+append-entry	2016-04-05T13:23:05Z	sha-256:90ac4de48c6b25ae399c279238187f2ab2156892ba547883c56bb8c073b6a95e	B
+append-entry	2016-04-05T13:23:05Z	sha-256:b9e1f92379beeb713e499c1267570586f6b4a3b9db58589d49ae13b19391a5af	B
+append-entry	2016-04-05T13:23:05Z	sha-256:eafe80444de5781c76f8992cd707d108e92206bc606b9719a0ccd5608a97ddbe	B
